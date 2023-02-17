@@ -3,6 +3,7 @@
 const bcrypt = require("bcrypt");
 const express = require("express");
 const { Sequelize, DataTypes } = require("sequelize");
+const jwt = require("jsonwebtoken");
 // const Sequelize = require("sequelize").Sequelize;
 
 const databaseName = "apprendre";
@@ -62,6 +63,29 @@ app.post("/user", async(req,res)=>{
     res.json(user);
     // res.status(200).json([user, req.originalUrl, req.body, req.params]);
 })
+
+app.get("/login", async(req, res)=>{
+    const User = sequelize.models.User; //je recupère la table User
+    const token = null;
+    // récupérer le mot de passe envoyé parle client
+    const password = req.body.password;
+    // comparer le mot de passe client avec le mot de passe BDD
+    const user = await User.findOne({ // je cherche l'utilisateur par son prénom
+        where : {username : req.body.username}
+    })
+    // dans les paramètres, 
+    // 1er attribut password en clair que le client à entrer et 
+    // 2eme attribut password hash récupérer dans la BDD
+    const isPasswordCorrect = bcrypt.compareSync(password, user.password);
+    if(isPasswordCorrect){
+        res.status(200).json({message:"vous êtes identifié", data:token})
+        return;
+    }
+    else{
+        res.status(400).json({message:"wrong credentials", data:null})
+    }
+    
+});
 
 app.listen(port, function(){
     console.log("Serveur start at localhost", port)
